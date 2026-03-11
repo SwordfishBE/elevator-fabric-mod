@@ -3,12 +3,12 @@
   "id": "elevator",
   "version": "${version}",
   "name": "Elevator",
-  "description": "Een eenvoudige liften-mod voor Fabric. Gebruik hetzelfde bloktype boven elkaar als lift; gebruik een teken met kanaalcode voor teleporters.",
+  "description": "A simple Elevator Mod for Fabric Minecraft.",
   "authors": [
     "Locutus"
   ],
   "contact": {
-    "sources": "https://github.com/Baktus79/Elevator"
+    "sources": "https://github.com/SwordfishBE/elevator-fabric-mod"
   },
   "license": "GPL-3.0",
   "environment": "*",
