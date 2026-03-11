@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "elevator",
+  "icon": "icon.png",
   "version": "${version}",
   "name": "Elevator",
   "description": "A simple Elevator Mod for Fabric Minecraft.",
