@@ -68,9 +68,14 @@ The config file is created automatically on first server start:
 
 Requirements: Java 21+
 ```bash
-gradle wrapper
+git clone https://github.com/SwordfishBE/elevator-fabric-mod.git
+cd elevator-fabric-mod
+
+# On Linux/macOS:
 ./gradlew build
-# Output: build/libs/elevator-1.0.0.jar
+
+# On Windows:
+gradlew.bat build
 ```
 
 ## License
