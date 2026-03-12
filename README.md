@@ -1,6 +1,6 @@
 # Elevator — Fabric Mod
 
-A simple elevator mod for Fabric, inspired by the original [Elevator Bukkit plugin](https://github.com/Baktus79/Elevator) by Baktus79.
+A simple elevator mod for Fabric.
 
 ## Features
 
