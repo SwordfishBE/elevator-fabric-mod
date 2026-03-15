@@ -9,9 +9,11 @@
     "SwordfishBE"
   ],
   "contact": {
-    "sources": "https://github.com/SwordfishBE/elevator-fabric-mod"
+    "homepage": "https://github.com/SwordfishBE/elevator-fabric-mod",
+    "sources": "https://github.com/SwordfishBE/elevator-fabric-mod",
+    "issues": "https://github.com/SwordfishBE/elevator-fabric-mod/issues"
   },
-  "license": "GPL-3.0",
+  "license": "AGPL-3.0",
   "environment": "*",
   "entrypoints": {
     "main": [
