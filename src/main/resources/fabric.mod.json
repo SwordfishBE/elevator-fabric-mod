@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "elevator",
-  "icon": "icon.png",
+  "icon": "assets/elevator/icon.png",
   "version": "${version}",
   "name": "Elevator",
   "description": "A simple Elevator Mod for Fabric Minecraft.",
@@ -11,18 +11,19 @@
   "contact": {
     "homepage": "https://github.com/SwordfishBE/elevator-fabric-mod",
     "sources": "https://github.com/SwordfishBE/elevator-fabric-mod",
-    "issues": "https://github.com/SwordfishBE/elevator-fabric-mod/issues"
+    "issues": "https://github.com/SwordfishBE/elevator-fabric-mod/issues",
+    "email": "swordfishbe@locutus.net"
   },
   "license": "AGPL-3.0",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "be.locutus.elevator.ElevatorMod"
+      "net.elevator.ElevatorMod"
     ]
   },
   "depends": {
-    "fabricloader": ">=0.15.0",
+    "fabricloader": ">=0.18.4",
     "fabric-api": "*",
-    "minecraft": "~1.21.11"
+    "minecraft": "~26.1"
   }
 }

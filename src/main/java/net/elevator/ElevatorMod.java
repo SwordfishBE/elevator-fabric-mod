@@ -1,8 +1,8 @@
-package be.locutus.elevator;
+package net.elevator;
 
-import be.locutus.elevator.command.ElevatorCommand;
-import be.locutus.elevator.config.ElevatorConfig;
-import be.locutus.elevator.handler.ElevatorHandler;
+import net.elevator.command.ElevatorCommand;
+import net.elevator.config.ElevatorConfig;
+import net.elevator.handler.ElevatorHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -31,7 +31,7 @@ public class ElevatorMod implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(handler::onServerTick);
 
         ServerPlayConnectionEvents.DISCONNECT.register((networkHandler, server) ->
-            handler.removePlayer(networkHandler.player.getUuid())
+            handler.removePlayer(networkHandler.player.getUUID())
         );
 
         LOGGER.info("[Elevator] Ready!");

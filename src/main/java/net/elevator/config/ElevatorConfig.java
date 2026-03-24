@@ -1,4 +1,4 @@
-package be.locutus.elevator.config;
+package net.elevator.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

@@ -66,7 +66,7 @@ The config file is created automatically on first server start:
 
 ## Building from source
 
-Requirements: Java 21+
+Requirements: Java 25+
 ```bash
 git clone https://github.com/SwordfishBE/elevator-fabric-mod.git
 cd elevator-fabric-mod
