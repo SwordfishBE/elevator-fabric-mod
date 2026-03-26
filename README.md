@@ -64,6 +64,8 @@ The config file is created automatically on first server start:
 3. Make sure [Fabric API](https://modrinth.com/mod/fabric-api) is also installed
 4. Start the server — the config file will be created automatically
 
+This mod is also available on [Modrinth](https://modrinth.com/mod/elevator-mod) or [CurseForge](https://www.curseforge.com/minecraft/mc-mods/elevatorr).
+
 ## Building from source
 
 Requirements: Java 25+
