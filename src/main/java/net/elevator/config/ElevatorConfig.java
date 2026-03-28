@@ -2,6 +2,7 @@ package net.elevator.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.elevator.ElevatorMod;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.*;
@@ -43,10 +44,13 @@ public class ElevatorConfig {
         if (configFile.exists()) {
             try (Reader reader = new FileReader(configFile)) {
                 instance = GSON.fromJson(reader, ElevatorConfig.class);
+                if (instance == null) {
+                    instance = new ElevatorConfig();
+                }
                 instance.save(configPath);
                 return instance;
             } catch (IOException e) {
-                System.err.println("[Elevator] Failed to load config, using defaults: " + e.getMessage());
+                ElevatorMod.LOGGER.warn("[Elevator] Failed to load config, using defaults: {}", e.getMessage());
             }
         }
 
@@ -59,7 +63,7 @@ public class ElevatorConfig {
         try (Writer writer = new FileWriter(path.toFile())) {
             GSON.toJson(this, writer);
         } catch (IOException e) {
-            System.err.println("[Elevator] Failed to save config: " + e.getMessage());
+            ElevatorMod.LOGGER.warn("[Elevator] Failed to save config: {}", e.getMessage());
         }
     }
 

@@ -2,6 +2,11 @@
 
 A simple elevator mod for Fabric.
 
+[![GitHub Release](https://img.shields.io/github/v/release/SwordfishBE/elevator-fabric-mod?display_name=release&logo=github)](https://github.com/SwordfishBE/elevator-fabric-mod/releases)
+[![GitHub Downloads](https://img.shields.io/github/downloads/SwordfishBE/elevator-fabric-mod/total?logo=github)](https://github.com/SwordfishBE/elevator-fabric-mod/releases)
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/s5gP8ABG?logo=modrinth&logoColor=white&label=Modrinth%20downloads)](https://modrinth.com/mod/elevator-mod)
+[![CurseForge Downloads](https://img.shields.io/curseforge/dt/1487910?logo=curseforge&logoColor=white&label=CurseForge%20downloads)](https://www.curseforge.com/minecraft/mc-mods/elevatorr)
+
 ## Features
 
 | Feature            | Description                                                              |
@@ -53,18 +58,25 @@ The config file is created automatically on first server start:
 
 ## Commands
 
-| Command            | Description                  | Permission |
-|--------------------|------------------------------|------------|
-| `/elevator reload` | Reload the config file       | OP         |
+| Command            | Description                                                         | Permission |
+|--------------------|---------------------------------------------------------------------|------------|
+| `/elevator info`   | Shows which configured block must be placed on top of a redstone block | Everyone   |
+| `/elevator reload` | Reload the config file                                              | OP         |
 
 ## Installation
 
-1. Download the latest JAR from [Releases](../../releases)
-2. Place the JAR in your server's `mods/` folder
-3. Make sure [Fabric API](https://modrinth.com/mod/fabric-api) is also installed
-4. Start the server — the config file will be created automatically
+### Downloads
 
-This mod is also available on [Modrinth](https://modrinth.com/mod/elevator-mod) or [CurseForge](https://www.curseforge.com/minecraft/mc-mods/elevatorr).
+| Platform   | Link |
+|------------|------|
+| GitHub     | [Releases](https://github.com/SwordfishBE/elevator-fabric-mod/releases) |
+| Modrinth   | [Elevator Mod](https://modrinth.com/mod/elevator-mod) |
+| CurseForge | [Elevatorr](https://www.curseforge.com/minecraft/mc-mods/elevatorr) |
+
+1. Download the latest JAR from your preferred platform above.
+2. Place the JAR in your server's `mods/` folder.
+3. Make sure [Fabric API](https://modrinth.com/mod/fabric-api) is also installed.
+4. Start the server — the config file will be created automatically.
 
 ## Building from source
 

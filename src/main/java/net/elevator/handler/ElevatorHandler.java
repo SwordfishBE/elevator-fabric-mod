@@ -1,5 +1,6 @@
 package net.elevator.handler;
 
+import net.elevator.ElevatorMod;
 import net.elevator.config.ElevatorConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -162,10 +163,14 @@ public class ElevatorHandler {
 
     private Block getElevatorBlock(ElevatorConfig config) {
         if (!config.elevatorBlock.equals(cachedElevatorBlockId)) {
-            cachedElevatorBlock = BuiltInRegistries.BLOCK.getValue(Identifier.parse(config.elevatorBlock));
+            try {
+                cachedElevatorBlock = BuiltInRegistries.BLOCK.getValue(Identifier.parse(config.elevatorBlock));
+            } catch (Exception e) {
+                cachedElevatorBlock = Blocks.AIR;
+            }
             cachedElevatorBlockId = config.elevatorBlock;
             if (cachedElevatorBlock == Blocks.AIR) {
-                System.err.println("[Elevator] Invalid elevator block in config: " + config.elevatorBlock);
+                ElevatorMod.LOGGER.warn("[Elevator] Invalid elevator block in config: {}", config.elevatorBlock);
             }
         }
         return cachedElevatorBlock;
