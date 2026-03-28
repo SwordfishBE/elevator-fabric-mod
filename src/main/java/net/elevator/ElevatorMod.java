@@ -3,8 +3,10 @@ package net.elevator;
 import net.elevator.command.ElevatorCommand;
 import net.elevator.config.ElevatorConfig;
 import net.elevator.handler.ElevatorHandler;
+import net.elevator.util.ModrinthUpdateChecker;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import org.slf4j.Logger;
@@ -33,6 +35,8 @@ public class ElevatorMod implements ModInitializer {
         ServerPlayConnectionEvents.DISCONNECT.register((networkHandler, server) ->
             handler.removePlayer(networkHandler.player.getUUID())
         );
+
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> ModrinthUpdateChecker.checkOnceAsync());
 
         LOGGER.info("[Elevator] Ready!");
     }
