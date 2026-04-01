@@ -1,4 +1,4 @@
-# Elevator — Fabric Mod
+# Elevator
 
 A simple elevator mod for Fabric.
 
@@ -7,7 +7,7 @@ A simple elevator mod for Fabric.
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/s5gP8ABG?logo=modrinth&logoColor=white&label=Modrinth%20downloads)](https://modrinth.com/mod/elevator-mod)
 [![CurseForge Downloads](https://img.shields.io/curseforge/dt/1487910?logo=curseforge&logoColor=white&label=CurseForge%20downloads)](https://www.curseforge.com/minecraft/mc-mods/elevatorr)
 
-## Features
+## ✨ Features
 
 | Feature            | Description                                                              |
 |--------------------|--------------------------------------------------------------------------|
@@ -20,7 +20,7 @@ A simple elevator mod for Fabric.
 | **Cooldown**       | Configurable cooldown between teleports                                  |
 | **Safety check**   | Only teleport if the destination has enough headroom                     |
 
-## How to use
+## ❗ How to use
 
 1. Place a **redstone block** on the floor.
 2. Place the **elevator block** (default: iron block) on top of the redstone block.
@@ -32,7 +32,7 @@ A simple elevator mod for Fabric.
 
 > Tip: hide the elevator block by placing a carpet on top of it!
 
-## Configuration
+## ⚙️ Configuration
 
 The config file is created automatically on first server start:
 `config/elevator.json`
@@ -63,7 +63,7 @@ The config file is created automatically on first server start:
 | `/elevator info`   | Shows which configured block must be placed on top of a redstone block | Everyone   |
 | `/elevator reload` | Reload the config file                                              | OP         |
 
-## Installation
+## 📦 Installation
 
 ### Downloads
 
@@ -78,7 +78,7 @@ The config file is created automatically on first server start:
 3. Make sure [Fabric API](https://modrinth.com/mod/fabric-api) is also installed.
 4. Start the server — the config file will be created automatically.
 
-## Building from source
+## 🧱 Building from source
 
 Requirements: Java 25+
 ```bash
@@ -92,6 +92,6 @@ cd elevator-fabric-mod
 gradlew.bat build
 ```
 
-## License
+## 📄 License
 
-AGPL-3.0 — see [LICENSE](LICENSE)
+Released under the [AGPL-3.0 License](LICENSE).
