@@ -5,8 +5,11 @@ import com.google.gson.GsonBuilder;
 import net.elevator.ElevatorMod;
 import net.fabricmc.loader.api.FabricLoader;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 /**
  * Configuration for the Elevator mod.
@@ -15,6 +18,7 @@ import java.nio.file.Path;
 public class ElevatorConfig {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Pattern COMMENT_PATTERN = Pattern.compile("(?m)^\\s*//.*(?:\\R|$)");
     private static ElevatorConfig instance;
 
     /** Block ID used as elevator. Must be placed on a redstone block to activate. */
@@ -42,8 +46,9 @@ public class ElevatorConfig {
         File configFile = configPath.toFile();
 
         if (configFile.exists()) {
-            try (Reader reader = new FileReader(configFile)) {
-                instance = GSON.fromJson(reader, ElevatorConfig.class);
+            try {
+                String rawJson = Files.readString(configPath);
+                instance = GSON.fromJson(stripComments(rawJson), ElevatorConfig.class);
                 if (instance == null) {
                     instance = new ElevatorConfig();
                 }
@@ -60,11 +65,38 @@ public class ElevatorConfig {
     }
 
     private void save(Path path) {
-        try (Writer writer = new FileWriter(path.toFile())) {
-            GSON.toJson(this, writer);
+        try {
+            Files.writeString(path, toCommentedJson());
         } catch (IOException e) {
             ElevatorMod.LOGGER.warn("[Elevator] Failed to save config: {}", e.getMessage());
         }
+    }
+
+    private static String stripComments(String rawJson) {
+        return COMMENT_PATTERN.matcher(rawJson).replaceAll("");
+    }
+
+    private String toCommentedJson() {
+        String newline = System.lineSeparator();
+        return "{" + newline
+                + "  // Block ID used as the elevator platform. It must be placed on top of a redstone block." + newline
+                + "  \"elevatorBlock\": \"" + elevatorBlock + "\"," + newline
+                + newline
+                + "  // Maximum number of blocks to scan upward or downward for the next elevator platform." + newline
+                + "  \"maxElevatorHeight\": " + maxElevatorHeight + "," + newline
+                + newline
+                + "  // Whether teleporting should spawn portal particles at the origin and destination." + newline
+                + "  \"particlesEnabled\": " + particlesEnabled + "," + newline
+                + newline
+                + "  // Whether teleporting should play the enderman teleport sound effect." + newline
+                + "  \"soundEnabled\": " + soundEnabled + "," + newline
+                + newline
+                + "  // Cooldown between teleports in ticks. 20 ticks equals 1 second." + newline
+                + "  \"cooldownTicks\": " + cooldownTicks + "," + newline
+                + newline
+                + "  // When enabled, the destination must have enough headroom for the player to arrive safely." + newline
+                + "  \"safetyEnabled\": " + safetyEnabled + newline
+                + "}" + newline;
     }
 
     public static ElevatorConfig get() {
