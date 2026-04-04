@@ -19,6 +19,7 @@ public class ElevatorConfig {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Pattern COMMENT_PATTERN = Pattern.compile("(?m)^\\s*//.*(?:\\R|$)");
+    private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("elevator.json");
     private static ElevatorConfig instance;
 
     /** Block ID used as elevator. Must be placed on a redstone block to activate. */
@@ -42,31 +43,42 @@ public class ElevatorConfig {
     public boolean safetyEnabled = true;
 
     public static ElevatorConfig load() {
-        Path configPath = FabricLoader.getInstance().getConfigDir().resolve("elevator.json");
-        File configFile = configPath.toFile();
+        instance = readOrCreateConfig();
+        instance.save();
+        return instance;
+    }
+
+    public static ElevatorConfig loadForEditing() {
+        return readOrCreateConfig();
+    }
+
+    public static void applyEditedConfig(ElevatorConfig editedConfig) {
+        instance = editedConfig == null ? new ElevatorConfig() : editedConfig;
+        instance.save();
+    }
+
+    private static ElevatorConfig readOrCreateConfig() {
+        File configFile = CONFIG_PATH.toFile();
 
         if (configFile.exists()) {
             try {
-                String rawJson = Files.readString(configPath);
-                instance = GSON.fromJson(stripComments(rawJson), ElevatorConfig.class);
-                if (instance == null) {
-                    instance = new ElevatorConfig();
+                String rawJson = Files.readString(CONFIG_PATH);
+                ElevatorConfig loadedConfig = GSON.fromJson(stripComments(rawJson), ElevatorConfig.class);
+                if (loadedConfig == null) {
+                    loadedConfig = new ElevatorConfig();
                 }
-                instance.save(configPath);
-                return instance;
+                return loadedConfig;
             } catch (IOException e) {
                 ElevatorMod.LOGGER.warn("[Elevator] Failed to load config, using defaults: {}", e.getMessage());
             }
         }
 
-        instance = new ElevatorConfig();
-        instance.save(configPath);
-        return instance;
+        return new ElevatorConfig();
     }
 
-    private void save(Path path) {
+    private void save() {
         try {
-            Files.writeString(path, toCommentedJson());
+            Files.writeString(CONFIG_PATH, toCommentedJson());
         } catch (IOException e) {
             ElevatorMod.LOGGER.warn("[Elevator] Failed to save config: {}", e.getMessage());
         }

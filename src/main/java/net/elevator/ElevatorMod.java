@@ -17,6 +17,14 @@ public class ElevatorMod implements ModInitializer {
     public static final String MOD_ID = "elevator";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+    public static ElevatorConfig loadConfigForEditing() {
+        return ElevatorConfig.loadForEditing();
+    }
+
+    public static void applyEditedConfig(ElevatorConfig editedConfig) {
+        ElevatorConfig.applyEditedConfig(editedConfig);
+    }
+
     @Override
     public void onInitialize() {
         ElevatorConfig config = ElevatorConfig.load();

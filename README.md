@@ -19,6 +19,7 @@ A simple elevator mod for Fabric.
 | **Sound**          | Sound effect on teleport                                                 |
 | **Cooldown**       | Configurable cooldown between teleports                                  |
 | **Safety check**   | Only teleport if the destination has enough headroom                     |
+| **Mod Menu support** | Optional client config screen when Mod Menu is installed               |
 
 ## ❗ How to use
 
@@ -56,6 +57,14 @@ The config file is created automatically on first server start:
 | `cooldownTicks`     | Ticks between teleports (20 = 1 second)                            |
 | `safetyEnabled`     | Skip destination if headroom is blocked                            |
 
+### In-game config screen
+
+This mod supports an optional Mod Menu integration.
+
+- With **Mod Menu + Cloth Config** installed on the client, you get a full in-game config screen.
+- On a **dedicated server**, no extra client libraries are required.
+- On a **client without Cloth Config**, the mod still works normally, but no config GUI is shown.
+
 ## Commands
 
 | Command            | Description                                                         | Permission |
@@ -77,6 +86,12 @@ The config file is created automatically on first server start:
 2. Place the JAR in your server's `mods/` folder.
 3. Make sure [Fabric API](https://modrinth.com/mod/fabric-api) is also installed.
 4. Start the server — the config file will be created automatically.
+
+### Optional client extras
+
+- [Mod Menu](https://modrinth.com/mod/modmenu) adds a config entry in the mods list.
+- [Cloth Config API](https://modrinth.com/mod/cloth-config) enables the actual config screen used by Mod Menu.
+- These are optional client-side extras and are not required on dedicated servers.
 
 ## 🧱 Building from source
 
