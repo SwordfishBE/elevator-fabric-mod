@@ -170,7 +170,7 @@ public class ElevatorHandler {
             }
             cachedElevatorBlockId = config.elevatorBlock;
             if (cachedElevatorBlock == Blocks.AIR) {
-                ElevatorMod.LOGGER.warn("[Elevator] Invalid elevator block in config: {}", config.elevatorBlock);
+                ElevatorMod.LOGGER.warn("{} Invalid elevator block in config: {}", ElevatorMod.logPrefix(), config.elevatorBlock);
             }
         }
         return cachedElevatorBlock;

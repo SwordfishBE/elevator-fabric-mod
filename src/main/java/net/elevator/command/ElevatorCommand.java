@@ -1,6 +1,7 @@
 package net.elevator.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import net.elevator.ElevatorMod;
 import net.elevator.config.ElevatorConfig;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.commands.CommandSourceStack;
@@ -24,12 +25,12 @@ public class ElevatorCommand {
 
                         if (block == Blocks.AIR) {
                             context.getSource().sendSuccess(
-                                () -> Component.literal("[Elevator] Configured elevator block is invalid: " + blockId),
+                                () -> Component.literal(ElevatorMod.logPrefix() + " Configured elevator block is invalid: " + blockId),
                                 false
                             );
                         } else {
                             context.getSource().sendSuccess(
-                                () -> Component.literal("[Elevator] Place " + blockId + " on top of a redstone block to use it as an elevator."),
+                                () -> Component.literal(ElevatorMod.logPrefix() + " Place " + blockId + " on top of a redstone block to use it as an elevator."),
                                 false
                             );
                         }
@@ -40,8 +41,9 @@ public class ElevatorCommand {
                     .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
                     .executes(context -> {
                         ElevatorConfig.load();
+                        ElevatorMod.LOGGER.info("{} Config reloaded via command.", ElevatorMod.logPrefix());
                         context.getSource().sendSuccess(
-                            () -> Component.literal("[Elevator] Config reloaded!"),
+                            () -> Component.literal(ElevatorMod.logPrefix() + " Config reloaded via command."),
                             true
                         );
                         return 1;

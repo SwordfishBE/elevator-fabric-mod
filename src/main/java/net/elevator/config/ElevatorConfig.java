@@ -69,7 +69,7 @@ public class ElevatorConfig {
                 }
                 return loadedConfig;
             } catch (IOException e) {
-                ElevatorMod.LOGGER.warn("[Elevator] Failed to load config, using defaults: {}", e.getMessage());
+                ElevatorMod.LOGGER.warn("{} Failed to load config, using defaults: {}", ElevatorMod.logPrefix(), e.getMessage());
             }
         }
 
@@ -80,7 +80,7 @@ public class ElevatorConfig {
         try {
             Files.writeString(CONFIG_PATH, toCommentedJson());
         } catch (IOException e) {
-            ElevatorMod.LOGGER.warn("[Elevator] Failed to save config: {}", e.getMessage());
+            ElevatorMod.LOGGER.warn("{} Failed to save config: {}", ElevatorMod.logPrefix(), e.getMessage());
         }
     }
 
