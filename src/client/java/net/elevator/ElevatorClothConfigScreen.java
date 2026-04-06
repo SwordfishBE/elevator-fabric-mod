@@ -13,6 +13,7 @@ final class ElevatorClothConfigScreen {
 
     static Screen create(Screen parent) {
         ElevatorConfig config = ElevatorMod.loadConfigForEditing();
+        String elevatorBlocksCsv = String.join(", ", config.elevatorBlocks);
 
         ConfigBuilder builder = ConfigBuilder.create()
             .setParentScreen(parent)
@@ -22,10 +23,14 @@ final class ElevatorClothConfigScreen {
         ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
         ConfigEntryBuilder entries = builder.entryBuilder();
 
-        general.addEntry(entries.startStrField(Component.literal("Elevator Block"), config.elevatorBlock)
+        general.addEntry(entries.startStrField(Component.literal("Elevator Blocks"), elevatorBlocksCsv)
             .setDefaultValue("minecraft:iron_block")
-            .setTooltip(Component.literal("Block ID used as the elevator platform. It must sit on a redstone block."))
-            .setSaveConsumer(value -> config.elevatorBlock = value)
+            .setTooltip(Component.literal("Comma-separated block IDs. Each listed block must sit on a redstone block, and travel only works between matching block types."))
+            .setSaveConsumer(value -> config.elevatorBlocks = java.util.Arrays.stream(value.split(","))
+                .map(String::trim)
+                .filter(entry -> !entry.isEmpty())
+                .distinct()
+                .toList())
             .build());
 
         general.addEntry(entries.startIntField(Component.literal("Max Elevator Height"), config.maxElevatorHeight)
@@ -37,14 +42,26 @@ final class ElevatorClothConfigScreen {
 
         general.addEntry(entries.startBooleanToggle(Component.literal("Particles Enabled"), config.particlesEnabled)
             .setDefaultValue(true)
-            .setTooltip(Component.literal("Spawn portal particles when teleporting."))
+            .setTooltip(Component.literal("Spawn a configurable particle effect when teleporting."))
             .setSaveConsumer(value -> config.particlesEnabled = value)
+            .build());
+
+        general.addEntry(entries.startStrField(Component.literal("Particle Type"), config.particleType)
+            .setDefaultValue("minecraft:portal")
+            .setTooltip(Component.literal("Minecraft particle ID. Simple particles like minecraft:portal work best."))
+            .setSaveConsumer(value -> config.particleType = value)
             .build());
 
         general.addEntry(entries.startBooleanToggle(Component.literal("Sound Enabled"), config.soundEnabled)
             .setDefaultValue(true)
-            .setTooltip(Component.literal("Play the enderman teleport sound when teleporting."))
+            .setTooltip(Component.literal("Play a configurable entity sound when teleporting."))
             .setSaveConsumer(value -> config.soundEnabled = value)
+            .build());
+
+        general.addEntry(entries.startStrField(Component.literal("Sound Event"), config.soundEvent)
+            .setDefaultValue("minecraft:entity.enderman.teleport")
+            .setTooltip(Component.literal("Minecraft sound event ID, ideally an entity sound like minecraft:entity.enderman.teleport."))
+            .setSaveConsumer(value -> config.soundEvent = value)
             .build());
 
         general.addEntry(entries.startIntField(Component.literal("Cooldown Ticks"), config.cooldownTicks)

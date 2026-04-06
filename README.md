@@ -14,9 +14,10 @@ A simple elevator mod for Fabric.
 | **Elevator up**    | Stand on the elevator block and **jump** → teleport to the block above   |
 | **Elevator down**  | Stand on the elevator block and **sneak** → teleport to the block below  |
 | **Redstone base**  | The elevator block must be placed **on top of a redstone block**         |
+| **Multiple block types** | Configure multiple elevator blocks while keeping travel within the same block type |
 | **Carpet hiding**  | Place a carpet on top of the elevator block — it still works!            |
-| **Particles**      | Visual particle effect on teleport                                       |
-| **Sound**          | Sound effect on teleport                                                 |
+| **Particles**      | Configurable visual particle effect on teleport                          |
+| **Sound**          | Configurable entity sound on teleport                                    |
 | **Cooldown**       | Configurable cooldown between teleports                                  |
 | **Safety check**   | Only teleport if the destination has enough headroom                     |
 | **Mod Menu support** | Optional client config screen when Mod Menu is installed               |
@@ -24,10 +25,11 @@ A simple elevator mod for Fabric.
 ## ❗ How to use
 
 1. Place a **redstone block** on the floor.
-2. Place the **elevator block** (default: iron block) on top of the redstone block.
-3. Repeat on each floor — all elevator blocks must be the same block type.
-4. Leave at least **2 free blocks** of space above each elevator block.
-5. Stand on the elevator block and:
+2. Place one of the configured **elevator blocks** (default: iron block) on top of the redstone block.
+3. Repeat on each floor.
+4. Travel only works between elevator platforms made from the **same block type**.
+5. Leave at least **2 free blocks** of space above each elevator block.
+6. Stand on the elevator block and:
    - **Jump** → go up
    - **Sneak** → go down
 
@@ -39,10 +41,12 @@ The config file is created automatically on first server start:
 `config/elevator.json`
 ```json
 {
-  "elevatorBlock": "minecraft:iron_block",
+  "elevatorBlocks": ["minecraft:iron_block", "minecraft:gold_block", "minecraft:sea_lantern"],
   "maxElevatorHeight": 50,
   "particlesEnabled": true,
+  "particleType": "minecraft:portal",
   "soundEnabled": true,
+  "soundEvent": "minecraft:entity.enderman.teleport",
   "cooldownTicks": 20,
   "safetyEnabled": true
 }
@@ -50,10 +54,12 @@ The config file is created automatically on first server start:
 
 | Option              | Description                                                        |
 |---------------------|--------------------------------------------------------------------|
-| `elevatorBlock`     | Block ID used as elevator                                          |
+| `elevatorBlocks`    | List of allowed elevator block IDs                                 |
 | `maxElevatorHeight` | Maximum distance (in blocks) to search for the next elevator block |
 | `particlesEnabled`  | Show particles on teleport                                         |
+| `particleType`      | Minecraft particle ID used when particles are enabled              |
 | `soundEnabled`      | Play sound on teleport                                             |
+| `soundEvent`        | Minecraft sound event ID used when sound is enabled                |
 | `cooldownTicks`     | Ticks between teleports (20 = 1 second)                            |
 | `safetyEnabled`     | Skip destination if headroom is blocked                            |
 
@@ -69,7 +75,7 @@ This mod supports an optional Mod Menu integration.
 
 | Command            | Description                                                         | Permission |
 |--------------------|---------------------------------------------------------------------|------------|
-| `/elevator info`   | Shows which configured block must be placed on top of a redstone block | Everyone   |
+| `/elevator info`   | Shows the configured elevator blocks and reminds that travel only works between matching block types | Everyone   |
 | `/elevator reload` | Reload the config file                                              | OP         |
 
 ## 📦 Installation

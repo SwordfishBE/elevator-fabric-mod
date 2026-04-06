@@ -32,7 +32,9 @@ public class ElevatorMod implements ModInitializer {
     public void onInitialize() {
         ElevatorConfig config = ElevatorConfig.load();
         LOGGER.info("{} Mod initialized. Version: {}", logPrefix(), modVersion());
-        LOGGER.debug("{} Elevator block: {}", logPrefix(), config.elevatorBlock);
+        LOGGER.debug("{} Elevator blocks: {}", logPrefix(), config.elevatorBlocks);
+        LOGGER.debug("{} Particle type: {}", logPrefix(), config.particleType);
+        LOGGER.debug("{} Sound event: {}", logPrefix(), config.soundEvent);
         LOGGER.debug("{} Max height: {}", logPrefix(), config.maxElevatorHeight);
 
         ElevatorHandler handler = new ElevatorHandler();

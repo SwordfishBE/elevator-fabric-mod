@@ -20,17 +20,22 @@ public class ElevatorCommand {
                 .then(Commands.literal("info")
                     .executes(context -> {
                         ElevatorConfig config = ElevatorConfig.get();
-                        String blockId = config.elevatorBlock;
-                        Block block = resolveBlock(blockId);
+                        String blockList = String.join(", ", config.elevatorBlocks);
+                        int validBlockCount = 0;
+                        for (String blockId : config.elevatorBlocks) {
+                            if (resolveBlock(blockId) != Blocks.AIR) {
+                                validBlockCount++;
+                            }
+                        }
 
-                        if (block == Blocks.AIR) {
+                        if (validBlockCount == 0) {
                             context.getSource().sendSuccess(
-                                () -> Component.literal(ElevatorMod.logPrefix() + " Configured elevator block is invalid: " + blockId),
+                                () -> Component.literal(ElevatorMod.logPrefix() + " All configured elevator blocks are invalid: " + blockList),
                                 false
                             );
                         } else {
                             context.getSource().sendSuccess(
-                                () -> Component.literal(ElevatorMod.logPrefix() + " Place " + blockId + " on top of a redstone block to use it as an elevator."),
+                                () -> Component.literal(ElevatorMod.logPrefix() + " Elevator blocks: " + blockList + ". Each must sit on a redstone block, and you only travel vertically between matching block types."),
                                 false
                             );
                         }

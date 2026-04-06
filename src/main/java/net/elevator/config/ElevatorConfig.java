@@ -9,6 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -22,8 +25,11 @@ public class ElevatorConfig {
     private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("elevator.json");
     private static ElevatorConfig instance;
 
-    /** Block ID used as elevator. Must be placed on a redstone block to activate. */
-    public String elevatorBlock = "minecraft:iron_block";
+    /** Block IDs that may be used as elevator platforms. Each must be placed on a redstone block. */
+    public List<String> elevatorBlocks = new ArrayList<>(List.of("minecraft:iron_block"));
+
+    /** Legacy single-block config key, kept for migration from older config files. */
+    public String elevatorBlock;
 
     /** Maximum search distance (in blocks) up or down. */
     public int maxElevatorHeight = 50;
@@ -31,8 +37,14 @@ public class ElevatorConfig {
     /** Show particle effects on teleport. */
     public boolean particlesEnabled = true;
 
+    /** Particle ID spawned when teleporting. */
+    public String particleType = "minecraft:portal";
+
     /** Play sound on teleport. */
     public boolean soundEnabled = true;
+
+    /** Sound event ID played when teleporting. */
+    public String soundEvent = "minecraft:entity.enderman.teleport";
 
     /** Cooldown in ticks between teleports (20 ticks = 1 second). */
     public int cooldownTicks = 20;
@@ -54,6 +66,7 @@ public class ElevatorConfig {
 
     public static void applyEditedConfig(ElevatorConfig editedConfig) {
         instance = editedConfig == null ? new ElevatorConfig() : editedConfig;
+        instance.normalize();
         instance.save();
     }
 
@@ -67,13 +80,16 @@ public class ElevatorConfig {
                 if (loadedConfig == null) {
                     loadedConfig = new ElevatorConfig();
                 }
+                loadedConfig.normalize();
                 return loadedConfig;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 ElevatorMod.LOGGER.warn("{} Failed to load config, using defaults: {}", ElevatorMod.logPrefix(), e.getMessage());
             }
         }
 
-        return new ElevatorConfig();
+        ElevatorConfig config = new ElevatorConfig();
+        config.normalize();
+        return config;
     }
 
     private void save() {
@@ -88,20 +104,92 @@ public class ElevatorConfig {
         return COMMENT_PATTERN.matcher(rawJson).replaceAll("");
     }
 
+    private void normalize() {
+        List<String> normalizedBlocks = new ArrayList<>();
+        if (elevatorBlocks != null) {
+            for (String blockId : elevatorBlocks) {
+                String normalized = normalizeIdentifier(blockId);
+                if (normalized != null && !normalizedBlocks.contains(normalized)) {
+                    normalizedBlocks.add(normalized);
+                }
+            }
+        }
+
+        String legacyBlock = normalizeIdentifier(elevatorBlock);
+        if (legacyBlock != null && !normalizedBlocks.contains(legacyBlock)) {
+            normalizedBlocks.add(legacyBlock);
+        }
+
+        if (normalizedBlocks.isEmpty()) {
+            normalizedBlocks.add("minecraft:iron_block");
+        }
+        elevatorBlocks = normalizedBlocks;
+        elevatorBlock = elevatorBlocks.getFirst();
+
+        particleType = Objects.requireNonNullElse(normalizeIdentifier(particleType), "minecraft:portal");
+        soundEvent = normalizeSoundIdentifier(soundEvent);
+
+        if (maxElevatorHeight < 1) {
+            maxElevatorHeight = 1;
+        }
+        if (cooldownTicks < 0) {
+            cooldownTicks = 0;
+        }
+    }
+
+    private static String normalizeIdentifier(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static String normalizeSoundIdentifier(String value) {
+        String normalized = normalizeIdentifier(value);
+        if (normalized == null) {
+            return "minecraft:entity.enderman.teleport";
+        }
+
+        if (normalized.equals("minecraft:enderman.teleport")) {
+            return "minecraft:entity.enderman.teleport";
+        }
+
+        if (!normalized.contains(":")) {
+            normalized = "minecraft:" + normalized;
+        }
+
+        int separatorIndex = normalized.indexOf(':');
+        String namespace = normalized.substring(0, separatorIndex);
+        String path = normalized.substring(separatorIndex + 1);
+
+        if (!path.startsWith("entity.") && path.chars().filter(character -> character == '.').count() == 1) {
+            return namespace + ":entity." + path;
+        }
+
+        return normalized;
+    }
+
     private String toCommentedJson() {
         String newline = System.lineSeparator();
         return "{" + newline
-                + "  // Block ID used as the elevator platform. It must be placed on top of a redstone block." + newline
-                + "  \"elevatorBlock\": \"" + elevatorBlock + "\"," + newline
+                + "  // Block IDs that may be used as elevator platforms. Every listed block must be placed on top of a redstone block." + newline
+                + "  \"elevatorBlocks\": " + GSON.toJson(elevatorBlocks) + "," + newline
                 + newline
                 + "  // Maximum number of blocks to scan upward or downward for the next elevator platform." + newline
                 + "  \"maxElevatorHeight\": " + maxElevatorHeight + "," + newline
                 + newline
-                + "  // Whether teleporting should spawn portal particles at the origin and destination." + newline
+                + "  // Whether teleporting should spawn particles at the destination." + newline
                 + "  \"particlesEnabled\": " + particlesEnabled + "," + newline
                 + newline
-                + "  // Whether teleporting should play the enderman teleport sound effect." + newline
+                + "  // Particle ID to use when particles are enabled. Simple particles like minecraft:portal work best." + newline
+                + "  \"particleType\": " + GSON.toJson(particleType) + "," + newline
+                + newline
+                + "  // Whether teleporting should play a sound effect." + newline
                 + "  \"soundEnabled\": " + soundEnabled + "," + newline
+                + newline
+                + "  // Entity sound event ID to play when sound is enabled." + newline
+                + "  \"soundEvent\": " + GSON.toJson(soundEvent) + "," + newline
                 + newline
                 + "  // Cooldown between teleports in ticks. 20 ticks equals 1 second." + newline
                 + "  \"cooldownTicks\": " + cooldownTicks + "," + newline
