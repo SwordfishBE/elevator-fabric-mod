@@ -11,8 +11,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashSet;
 import java.util.HashMap;
@@ -124,13 +126,13 @@ public class ElevatorHandler {
     private boolean isSafe(BlockPos elevatorPos, ServerLevel world) {
         BlockPos above1 = elevatorPos.above(1);
         BlockPos above2 = elevatorPos.above(2);
-        return world.isEmptyBlock(above1) && world.isEmptyBlock(above2);
+        return isSafeLandingBlock(world.getBlockState(above1)) && world.isEmptyBlock(above2);
     }
 
     public void doTeleport(ServerPlayer player, BlockPos dest,
                            ServerLevel destWorld, long currentTick, ElevatorConfig config) {
         double x = dest.getX() + 0.5;
-        double y = dest.getY() + 1.0;
+        double y = dest.getY() + 1.0 + getLandingHeightOffset(dest, destWorld);
         double z = dest.getZ() + 0.5;
 
         player.teleportTo(destWorld, x, y, z,
@@ -236,5 +238,13 @@ public class ElevatorHandler {
 
         ElevatorMod.LOGGER.warn("{} Invalid sound event in config: {}", ElevatorMod.logPrefix(), soundId);
         return null;
+    }
+
+    private boolean isSafeLandingBlock(BlockState blockState) {
+        return blockState.isAir() || blockState.is(BlockTags.WOOL_CARPETS);
+    }
+
+    private double getLandingHeightOffset(BlockPos elevatorPos, ServerLevel world) {
+        return world.getBlockState(elevatorPos.above()).is(BlockTags.WOOL_CARPETS) ? 0.0625D : 0.0D;
     }
 }

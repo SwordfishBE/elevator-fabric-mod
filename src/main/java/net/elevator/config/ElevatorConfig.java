@@ -55,13 +55,16 @@ public class ElevatorConfig {
     public boolean safetyEnabled = true;
 
     public static ElevatorConfig load() {
-        instance = readOrCreateConfig();
-        instance.save();
+        LoadResult loadResult = readOrCreateConfig();
+        instance = loadResult.config();
+        if (loadResult.shouldSave()) {
+            instance.save();
+        }
         return instance;
     }
 
     public static ElevatorConfig loadForEditing() {
-        return readOrCreateConfig();
+        return readOrCreateConfig().config();
     }
 
     public static void applyEditedConfig(ElevatorConfig editedConfig) {
@@ -70,7 +73,7 @@ public class ElevatorConfig {
         instance.save();
     }
 
-    private static ElevatorConfig readOrCreateConfig() {
+    private static LoadResult readOrCreateConfig() {
         File configFile = CONFIG_PATH.toFile();
 
         if (configFile.exists()) {
@@ -81,15 +84,20 @@ public class ElevatorConfig {
                     loadedConfig = new ElevatorConfig();
                 }
                 loadedConfig.normalize();
-                return loadedConfig;
+                return new LoadResult(loadedConfig, true);
             } catch (Exception e) {
-                ElevatorMod.LOGGER.warn("{} Failed to load config, using defaults: {}", ElevatorMod.logPrefix(), e.getMessage());
+                ElevatorMod.LOGGER.warn(
+                    "{} Failed to load config, using defaults without overwriting '{}': {}",
+                    ElevatorMod.logPrefix(),
+                    CONFIG_PATH.getFileName(),
+                    e.getMessage()
+                );
             }
         }
 
         ElevatorConfig config = new ElevatorConfig();
         config.normalize();
-        return config;
+        return new LoadResult(config, !configFile.exists());
     }
 
     private void save() {
@@ -201,5 +209,8 @@ public class ElevatorConfig {
 
     public static ElevatorConfig get() {
         return instance;
+    }
+
+    private record LoadResult(ElevatorConfig config, boolean shouldSave) {
     }
 }

@@ -86,7 +86,6 @@ public final class ModrinthUpdateChecker {
 
         JsonArray versions = root.getAsJsonArray();
         VersionCandidate newestCompatible = null;
-        VersionCandidate newestRelease = null;
         String currentMinecraftVersion = currentMinecraftVersion();
 
         for (JsonElement versionElement : versions) {
@@ -107,10 +106,6 @@ public final class ModrinthUpdateChecker {
             }
 
             VersionCandidate candidate = new VersionCandidate(versionNumber, publishedAt);
-            if (isNewerCandidate(candidate, newestRelease)) {
-                newestRelease = candidate;
-            }
-
             if (jsonArrayContains(versionObject, "loaders", "fabric")
                     && jsonArrayContains(versionObject, "game_versions", currentMinecraftVersion)
                     && isNewerCandidate(candidate, newestCompatible)) {
@@ -118,7 +113,7 @@ public final class ModrinthUpdateChecker {
             }
         }
 
-        return Optional.ofNullable(newestCompatible != null ? newestCompatible : newestRelease)
+        return Optional.ofNullable(newestCompatible)
                 .map(VersionCandidate::versionNumber);
     }
 
