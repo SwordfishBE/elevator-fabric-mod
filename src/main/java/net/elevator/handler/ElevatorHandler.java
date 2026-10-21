@@ -96,31 +96,24 @@ public class ElevatorHandler {
     }
 
     private BlockPos findElevatorAbove(BlockPos current, ServerLevel world, Block elevatorBlock, ElevatorConfig config) {
-        for (int i = 1; i <= config.maxElevatorHeight; i++) {
-            BlockPos check = current.above(i);
-            if (world.getBlockState(check).getBlock() == elevatorBlock) {
-                if (world.getBlockState(check.below()).getBlock() == Blocks.REDSTONE_BLOCK) {
-                    if (!config.safetyEnabled || isSafe(check, world)) {
-                        return check;
-                    }
-                }
-            }
-        }
-        return null;
+        return findElevator(current, world, elevatorBlock, config, true);
     }
 
     private BlockPos findElevatorBelow(BlockPos current, ServerLevel world, Block elevatorBlock, ElevatorConfig config) {
-        for (int i = 1; i <= config.maxElevatorHeight; i++) {
-            BlockPos check = current.below(i);
-            if (world.getBlockState(check).getBlock() == elevatorBlock) {
-                if (world.getBlockState(check.below()).getBlock() == Blocks.REDSTONE_BLOCK) {
-                    if (!config.safetyEnabled || isSafe(check, world)) {
-                        return check;
-                    }
-                }
-            }
-        }
-        return null;
+        return findElevator(current, world, elevatorBlock, config, false);
+    }
+
+    private BlockPos findElevator(BlockPos current, ServerLevel world, Block elevatorBlock,
+                                  ElevatorConfig config, boolean upward) {
+        var destinationY = ElevatorSearch.find(current.getY(), world.getMinY(), world.getMaxY(),
+            config.maxElevatorHeight, upward, y -> {
+                BlockPos check = new BlockPos(current.getX(), y, current.getZ());
+                return world.getBlockState(check).getBlock() == elevatorBlock
+                    && world.getBlockState(check.below()).getBlock() == Blocks.REDSTONE_BLOCK
+                    && (!config.safetyEnabled || isSafe(check, world));
+            });
+        return destinationY.isPresent()
+            ? new BlockPos(current.getX(), destinationY.getAsInt(), current.getZ()) : null;
     }
 
     private boolean isSafe(BlockPos elevatorPos, ServerLevel world) {

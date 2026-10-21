@@ -5,6 +5,7 @@ import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.elevator.config.ElevatorConfig;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 final class ElevatorClothConfigScreen {
@@ -18,7 +19,10 @@ final class ElevatorClothConfigScreen {
         ConfigBuilder builder = ConfigBuilder.create()
             .setParentScreen(parent)
             .setTitle(Component.literal("Elevator Config"))
-            .setSavingRunnable(() -> ElevatorMod.applyEditedConfig(config));
+            .setSavingRunnable(() -> {
+                var server = Minecraft.getInstance().getSingleplayerServer();
+                ElevatorMod.applyEditedConfig(config, server == null ? Runnable::run : server);
+            });
 
         ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
         ConfigEntryBuilder entries = builder.entryBuilder();

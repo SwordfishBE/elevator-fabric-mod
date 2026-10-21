@@ -24,8 +24,8 @@ public class ElevatorMod implements ModInitializer {
         return ElevatorConfig.loadForEditing();
     }
 
-    public static void applyEditedConfig(ElevatorConfig editedConfig) {
-        ElevatorConfig.applyEditedConfig(editedConfig);
+    public static void applyEditedConfig(ElevatorConfig editedConfig, java.util.concurrent.Executor executor) {
+        ElevatorConfig.applyEditedConfig(editedConfig, executor);
     }
 
     @Override

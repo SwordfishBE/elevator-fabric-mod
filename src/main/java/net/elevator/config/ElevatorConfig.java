@@ -2,6 +2,9 @@ package net.elevator.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.elevator.ElevatorMod;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -12,6 +15,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 import java.util.regex.Pattern;
 
 /**
@@ -22,14 +26,14 @@ public class ElevatorConfig {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Pattern COMMENT_PATTERN = Pattern.compile("(?m)^\\s*//.*(?:\\R|$)");
-    private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("elevator.json");
-    private static ElevatorConfig instance;
+    private static volatile ElevatorConfig instance;
+
+    private static Path configPath() {
+        return FabricLoader.getInstance().getConfigDir().resolve("elevator.json");
+    }
 
     /** Block IDs that may be used as elevator platforms. Each must be placed on a redstone block. */
     public List<String> elevatorBlocks = new ArrayList<>(List.of("minecraft:iron_block"));
-
-    /** Legacy single-block config key, kept for migration from older config files. */
-    public String elevatorBlock;
 
     /** Maximum search distance (in blocks) up or down. */
     public int maxElevatorHeight = 50;
@@ -54,42 +58,46 @@ public class ElevatorConfig {
      */
     public boolean safetyEnabled = true;
 
-    public static ElevatorConfig load() {
+    public static synchronized ElevatorConfig load() {
         LoadResult loadResult = readOrCreateConfig();
-        instance = loadResult.config();
+        ElevatorConfig loadedConfig = loadResult.config();
         if (loadResult.shouldSave()) {
-            instance.save();
+            loadedConfig.save();
         }
-        return instance;
+        instance = loadedConfig;
+        return loadedConfig;
     }
 
-    public static ElevatorConfig loadForEditing() {
+    public static synchronized ElevatorConfig loadForEditing() {
         return readOrCreateConfig().config();
     }
 
-    public static void applyEditedConfig(ElevatorConfig editedConfig) {
-        instance = editedConfig == null ? new ElevatorConfig() : editedConfig;
-        instance.normalize();
-        instance.save();
+    public static synchronized void applyEditedConfig(ElevatorConfig editedConfig) {
+        ElevatorConfig snapshot = (editedConfig == null ? new ElevatorConfig() : editedConfig).normalizedCopy();
+        snapshot.save();
+        instance = snapshot;
+    }
+
+    public static void applyEditedConfig(ElevatorConfig editedConfig, Executor executor) {
+        // Detach the GUI draft before it crosses to the server thread.
+        ElevatorConfig snapshot = (editedConfig == null ? new ElevatorConfig() : editedConfig).normalizedCopy();
+        executor.execute(() -> applyEditedConfig(snapshot));
     }
 
     private static LoadResult readOrCreateConfig() {
-        File configFile = CONFIG_PATH.toFile();
+        Path configPath = configPath();
+        File configFile = configPath.toFile();
 
         if (configFile.exists()) {
             try {
-                String rawJson = Files.readString(CONFIG_PATH);
-                ElevatorConfig loadedConfig = GSON.fromJson(stripComments(rawJson), ElevatorConfig.class);
-                if (loadedConfig == null) {
-                    loadedConfig = new ElevatorConfig();
-                }
-                loadedConfig.normalize();
+                String rawJson = Files.readString(configPath);
+                ElevatorConfig loadedConfig = fromJson(rawJson);
                 return new LoadResult(loadedConfig, true);
             } catch (Exception e) {
                 ElevatorMod.LOGGER.warn(
                     "{} Failed to load config, using defaults without overwriting '{}': {}",
                     ElevatorMod.logPrefix(),
-                    CONFIG_PATH.getFileName(),
+                    configPath.getFileName(),
                     e.getMessage()
                 );
             }
@@ -102,7 +110,7 @@ public class ElevatorConfig {
 
     private void save() {
         try {
-            Files.writeString(CONFIG_PATH, toCommentedJson());
+            Files.writeString(configPath(), toCommentedJson());
         } catch (IOException e) {
             ElevatorMod.LOGGER.warn("{} Failed to save config: {}", ElevatorMod.logPrefix(), e.getMessage());
         }
@@ -110,6 +118,35 @@ public class ElevatorConfig {
 
     private static String stripComments(String rawJson) {
         return COMMENT_PATTERN.matcher(rawJson).replaceAll("");
+    }
+
+    static ElevatorConfig fromJson(String rawJson) {
+        JsonElement root = JsonParser.parseString(stripComments(rawJson));
+        if (root.isJsonNull()) {
+            return new ElevatorConfig().normalizedCopy();
+        }
+        JsonObject json = root.getAsJsonObject();
+        ElevatorConfig config = GSON.fromJson(json, ElevatorConfig.class);
+        if (!json.has("elevatorBlocks") && json.has("elevatorBlock")) {
+            String legacyBlock = GSON.fromJson(json.get("elevatorBlock"), String.class);
+            config.elevatorBlocks = legacyBlock == null ? List.of() : List.of(legacyBlock);
+        }
+        config.normalize();
+        return config;
+    }
+
+    ElevatorConfig normalizedCopy() {
+        ElevatorConfig copy = new ElevatorConfig();
+        copy.elevatorBlocks = elevatorBlocks == null ? null : new ArrayList<>(elevatorBlocks);
+        copy.maxElevatorHeight = maxElevatorHeight;
+        copy.particlesEnabled = particlesEnabled;
+        copy.particleType = particleType;
+        copy.soundEnabled = soundEnabled;
+        copy.soundEvent = soundEvent;
+        copy.cooldownTicks = cooldownTicks;
+        copy.safetyEnabled = safetyEnabled;
+        copy.normalize();
+        return copy;
     }
 
     private void normalize() {
@@ -123,16 +160,10 @@ public class ElevatorConfig {
             }
         }
 
-        String legacyBlock = normalizeIdentifier(elevatorBlock);
-        if (legacyBlock != null && !normalizedBlocks.contains(legacyBlock)) {
-            normalizedBlocks.add(legacyBlock);
-        }
-
         if (normalizedBlocks.isEmpty()) {
             normalizedBlocks.add("minecraft:iron_block");
         }
-        elevatorBlocks = normalizedBlocks;
-        elevatorBlock = elevatorBlocks.getFirst();
+        elevatorBlocks = List.copyOf(normalizedBlocks);
 
         particleType = Objects.requireNonNullElse(normalizeIdentifier(particleType), "minecraft:portal");
         soundEvent = normalizeSoundIdentifier(soundEvent);
@@ -159,20 +190,12 @@ public class ElevatorConfig {
             return "minecraft:entity.enderman.teleport";
         }
 
-        if (normalized.equals("minecraft:enderman.teleport")) {
-            return "minecraft:entity.enderman.teleport";
-        }
-
         if (!normalized.contains(":")) {
             normalized = "minecraft:" + normalized;
         }
 
-        int separatorIndex = normalized.indexOf(':');
-        String namespace = normalized.substring(0, separatorIndex);
-        String path = normalized.substring(separatorIndex + 1);
-
-        if (!path.startsWith("entity.") && path.chars().filter(character -> character == '.').count() == 1) {
-            return namespace + ":entity." + path;
+        if (normalized.equals("minecraft:enderman.teleport")) {
+            return "minecraft:entity.enderman.teleport";
         }
 
         return normalized;
