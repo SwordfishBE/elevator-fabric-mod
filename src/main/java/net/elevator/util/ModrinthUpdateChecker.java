@@ -8,6 +8,7 @@ import net.elevator.ElevatorMod;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
+import net.minecraft.SharedConstants;
 
 import java.io.IOException;
 import java.net.URI;
@@ -79,6 +80,10 @@ public final class ModrinthUpdateChecker {
     }
 
     private static Optional<String> extractLatestVersion(String responseBody) {
+        return extractLatestVersion(responseBody, SharedConstants.getCurrentVersion().id());
+    }
+
+    static Optional<String> extractLatestVersion(String responseBody, String currentMinecraftVersion) {
         JsonElement root = JsonParser.parseString(responseBody);
         if (!root.isJsonArray()) {
             return Optional.empty();
@@ -86,7 +91,6 @@ public final class ModrinthUpdateChecker {
 
         JsonArray versions = root.getAsJsonArray();
         VersionCandidate newestCompatible = null;
-        String currentMinecraftVersion = currentMinecraftVersion();
 
         for (JsonElement versionElement : versions) {
             if (!versionElement.isJsonObject()) {
@@ -176,13 +180,6 @@ public final class ModrinthUpdateChecker {
                 .getModContainer(ElevatorMod.MOD_ID)
                 .map(container -> container.getMetadata().getVersion().getFriendlyString())
                 .orElse(ElevatorMod.modVersion());
-    }
-
-    private static String currentMinecraftVersion() {
-        return FabricLoader.getInstance()
-                .getModContainer("minecraft")
-                .map(container -> container.getMetadata().getVersion().getFriendlyString())
-                .orElse("unknown");
     }
 
     private static boolean isNewerVersion(String candidate, String current) {
