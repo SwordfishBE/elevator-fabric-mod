@@ -39,8 +39,10 @@ dependencies {
     compileOnly("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
         exclude group: "net.fabricmc.fabric-api"
     }
-    localRuntime("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
-        exclude group: "net.fabricmc.fabric-api"
+    if (!project.hasProperty('withoutCloth')) {
+        localRuntime("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+            exclude group: "net.fabricmc.fabric-api"
+        }
     }
 }
 
@@ -64,4 +66,20 @@ tasks.withType(JavaCompile).configureEach {
 
 test {
     useJUnitPlatform()
+}
+
+if (project.hasProperty('clientTests')) {
+    fabricApi.configureTests {
+        createSourceSet = true
+        modId = 'elevator_client_tests'
+        enableGameTests = true
+        enableClientGameTests = true
+        eula = true
+    }
+    sourceSets.gametest.java.srcDir('src/clientTest/java')
+    sourceSets.gametest.resources.srcDir('src/clientTest/resources')
+    sourceSets.gametest.compileClasspath += sourceSets.client.output
+    sourceSets.gametest.compileClasspath += sourceSets.client.compileClasspath
+    sourceSets.gametest.runtimeClasspath += sourceSets.client.output
+    sourceSets.gametest.runtimeClasspath += sourceSets.client.runtimeClasspath
 }

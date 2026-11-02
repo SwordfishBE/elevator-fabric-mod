@@ -3,6 +3,7 @@ package net.elevator.handler;
 import net.elevator.ElevatorMod;
 import net.elevator.config.ElevatorConfig;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -15,6 +16,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.Pose;
 
 import java.util.HashSet;
 import java.util.HashMap;
@@ -29,7 +31,7 @@ import java.util.UUID;
  *   - Jump while standing on an elevator block -> teleport up to the next elevator block
  *   - Sneak while standing on an elevator block -> teleport down to the previous elevator block
  *   - The elevator block must be placed ON TOP of a redstone block to function.
- *   - Optionally hide the elevator block under a carpet; it still works.
+ *   - Optionally hide the elevator block under carpet or snow layers; it still works.
  */
 public class ElevatorHandler {
 
@@ -68,6 +70,10 @@ public class ElevatorHandler {
         BlockPos blockUnder = player.blockPosition().below();
 
         Set<Block> elevatorBlocks = getElevatorBlocks(config);
+        if (!elevatorBlocks.contains(world.getBlockState(blockUnder).getBlock())
+                && isSupportedCover(world.getBlockState(blockUnder))) {
+            blockUnder = blockUnder.below();
+        }
         Block currentElevatorBlock = world.getBlockState(blockUnder).getBlock();
         if (elevatorBlocks.contains(currentElevatorBlock)) {
             if (world.getBlockState(blockUnder.below()).getBlock() == Blocks.REDSTONE_BLOCK) {
@@ -76,12 +82,12 @@ public class ElevatorHandler {
                     boolean startedSneaking = !prevSneak && sneaking && onGround;
 
                     if (jumped) {
-                        BlockPos dest = findElevatorAbove(blockUnder, world, currentElevatorBlock, config);
+                        BlockPos dest = findElevator(blockUnder, world, currentElevatorBlock, config, true, player);
                         if (dest != null) {
                             doTeleport(player, dest, world, currentTick, config);
                         }
                     } else if (startedSneaking) {
-                        BlockPos dest = findElevatorBelow(blockUnder, world, currentElevatorBlock, config);
+                        BlockPos dest = findElevator(blockUnder, world, currentElevatorBlock, config, false, player);
                         if (dest != null) {
                             doTeleport(player, dest, world, currentTick, config);
                         }
@@ -95,31 +101,30 @@ public class ElevatorHandler {
         prevY.put(uuid, player.getY());
     }
 
-    private BlockPos findElevatorAbove(BlockPos current, ServerLevel world, Block elevatorBlock, ElevatorConfig config) {
-        return findElevator(current, world, elevatorBlock, config, true);
-    }
-
-    private BlockPos findElevatorBelow(BlockPos current, ServerLevel world, Block elevatorBlock, ElevatorConfig config) {
-        return findElevator(current, world, elevatorBlock, config, false);
-    }
-
     private BlockPos findElevator(BlockPos current, ServerLevel world, Block elevatorBlock,
-                                  ElevatorConfig config, boolean upward) {
+                                  ElevatorConfig config, boolean upward, ServerPlayer player) {
         var destinationY = ElevatorSearch.find(current.getY(), world.getMinY(), world.getMaxY(),
             config.maxElevatorHeight, upward, y -> {
                 BlockPos check = new BlockPos(current.getX(), y, current.getZ());
                 return world.getBlockState(check).getBlock() == elevatorBlock
                     && world.getBlockState(check.below()).getBlock() == Blocks.REDSTONE_BLOCK
-                    && (!config.safetyEnabled || isSafe(check, world));
+                    && (!config.safetyEnabled || isSafe(check, world, player));
             });
         return destinationY.isPresent()
             ? new BlockPos(current.getX(), destinationY.getAsInt(), current.getZ()) : null;
     }
 
-    private boolean isSafe(BlockPos elevatorPos, ServerLevel world) {
+    private boolean isSafe(BlockPos elevatorPos, ServerLevel world, ServerPlayer player) {
         BlockPos above1 = elevatorPos.above(1);
         BlockPos above2 = elevatorPos.above(2);
-        return isSafeLandingBlock(world.getBlockState(above1)) && world.isEmptyBlock(above2);
+        if (!isSafeLandingBlock(world.getBlockState(above1))
+                || (!world.isEmptyBlock(above2) && !isMossCarpet(world.getBlockState(above2)))) {
+            return false;
+        }
+        double y = elevatorPos.getY() + 1.0 + getLandingHeightOffset(elevatorPos, world);
+        var landingBox = player.getDimensions(Pose.STANDING)
+            .makeBoundingBox(elevatorPos.getX() + 0.5, y, elevatorPos.getZ() + 0.5);
+        return world.noCollision(player, landingBox);
     }
 
     public void doTeleport(ServerPlayer player, BlockPos dest,
@@ -234,10 +239,24 @@ public class ElevatorHandler {
     }
 
     private boolean isSafeLandingBlock(BlockState blockState) {
-        return blockState.isAir() || blockState.is(BlockTags.WOOL_CARPETS);
+        return blockState.isAir() || isSupportedCover(blockState);
+    }
+
+    private boolean isSupportedCover(BlockState blockState) {
+        return blockState.is(BlockTags.WOOL_CARPETS) || blockState.is(Blocks.SNOW) || isMossCarpet(blockState);
+    }
+
+    private boolean isMossCarpet(BlockState blockState) {
+        return blockState.is(Blocks.MOSS_CARPET) || blockState.is(Blocks.PALE_MOSS_CARPET);
     }
 
     private double getLandingHeightOffset(BlockPos elevatorPos, ServerLevel world) {
-        return world.getBlockState(elevatorPos.above()).is(BlockTags.WOOL_CARPETS) ? 0.0625D : 0.0D;
+        BlockPos coverPos = elevatorPos.above();
+        BlockState cover = world.getBlockState(coverPos);
+        if (!isSupportedCover(cover)) {
+            return 0.0;
+        }
+        var shape = cover.getCollisionShape(world, coverPos);
+        return shape.isEmpty() ? 0.0 : shape.max(Direction.Axis.Y);
     }
 }

@@ -16,6 +16,8 @@ A simple elevator mod for Fabric.
 | **Redstone base**  | The elevator block must be placed **on top of a redstone block**         |
 | **Multiple block types** | Configure multiple elevator blocks while keeping travel within the same block type |
 | **Carpet hiding**  | Place a carpet on top of the elevator block — it still works!            |
+| **Moss carpets**   | Both moss carpet and pale moss carpet can cover elevator platforms         |
+| **Snow layers**    | Snow layers on elevator platforms are supported, with landing height adjusted to their thickness |
 | **Particles**      | Configurable visual particle effect on teleport                          |
 | **Sound**          | Configurable entity sound on teleport                                    |
 | **Cooldown**       | Configurable cooldown between teleports                                  |
@@ -34,6 +36,9 @@ A simple elevator mod for Fabric.
    - **Sneak** → go down
 
 > Tip: hide the elevator block by placing a carpet on top of it!
+
+Snow layers also work on elevator platforms. Thicker layers require additional headroom;
+solid snow blocks remain obstacles rather than supported platform covers.
 
 ## ⚙️ Configuration
 
@@ -69,7 +74,7 @@ This mod supports an optional Mod Menu integration.
 
 - With **Mod Menu + Cloth Config** installed on the client, you get a full in-game config screen.
 - On a **dedicated server**, no extra client libraries are required.
-- On a **client without Cloth Config**, the mod still works normally, but no config GUI is shown.
+- If Cloth Config is missing or older than the current Minecraft version, Mod Menu shows a notice instead of opening an unsafe config screen. You can edit `config/elevator.json` and use `/elevator reload`.
 
 ## Commands
 
